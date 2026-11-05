@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Pronto!">
+  <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" href="icons/icon-192.png">
+  <meta name="theme-color" content="#173c35"><title>Pronto! 意大利语课堂通关</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#home" data-view="home"><span class="brand-mark">P!</span><span><b>Pronto!</b><small>意大利语课堂通关</small></span></a>
+      <p class="side-caption">把课堂笔记，一点点学会。</p>
+      <label class="unit-picker-label" for="unit-picker">当前学习单元</label>
+      <select id="unit-picker" class="unit-picker" aria-label="选择学习单元"></select>
+      <p id="sidebar-unit-meta" class="side-caption"></p>
+      <nav class="main-nav" aria-label="主导航">
+        <button class="nav-item active" data-view="home" aria-label="单元学习"><span aria-hidden="true">⌂</span><span class="nav-label">单元学习</span></button>
+        <button class="nav-item" data-view="vocab" aria-label="背单词"><span aria-hidden="true">◈</span><span class="nav-label">背单词</span></button>
+        <button class="nav-item" data-view="review" aria-label="复习"><span aria-hidden="true">↻</span><span class="nav-label">复习 <b id="review-badge">0</b></span></button>
+        <button class="nav-item" data-view="drill" aria-label="听写与刷词"><span aria-hidden="true">⌁</span><span class="nav-label">听写与刷词</span></button>
+        <button class="nav-item" data-view="listening" aria-label="听力练习"><span aria-hidden="true">♫</span><span class="nav-label">听力练习</span></button>
+        <button class="nav-item" data-view="grammar" aria-label="语法课堂"><span aria-hidden="true">☷</span><span class="nav-label">语法课堂</span></button>
+      </nav>
+      <div class="sidebar-bottom"><p>每次操作自动保存在这台设备（离线可用）</p><span class="sidebar-save" id="sidebar-save">正在读取…</span><details><summary>可选备份与恢复</summary><button class="outline-button" id="export-progress">下载进度备份</button><label class="import-label">恢复旧备份<input id="import-progress" type="file" accept="application/json" hidden></label></details><button class="reset-button" id="reset-progress">重置我的学习进度</button></div>
+    </aside>
+    <main>
+      <div id="save-banner" class="save-banner" role="status"><span id="save-status">正在读取已保存进度…</span><button class="text-button" data-action="sync-now">保存</button></div>
+      <div class="mobile-unit"><label for="mobile-unit-picker">学习单元</label><select id="mobile-unit-picker" class="unit-picker" aria-label="手机端选择单元"></select></div>
+      <section id="home" class="view active-view">
+        <div class="eyebrow"><span class="live-dot"></span> 从零开始 · 跟着单元学</div>
+        <div class="home-heading"><div><h1>一课一课，<br><em>把意大利语学明白。</em></h1><p id="hero-subtitle"></p></div></div>
+        <button class="daily-review-callout" data-view="review"><span>↻ 今日复习</span><strong id="home-review-count">正在读取…</strong><small>打开就知道该复习什么 →</small></button>
+        <div class="dashboard-grid">
+          <article class="focus-card"><div class="focus-top"><span id="focus-unit"></span><span id="focus-source"></span></div><h2 id="focus-title"></h2><p id="focus-copy"></p><div class="focus-actions"><button class="primary-button" data-view="vocab">开始背本单元的词 →</button><button class="text-button" data-view="grammar">先学语法</button></div></article>
+          <article class="progress-card"><div class="progress-label"><span>本单元进度</span><b id="progress-fraction"></b></div><div class="ring-wrap"><div class="progress-ring" id="progress-ring"><div><strong id="progress-percent"></strong><small>已完成</small></div></div></div><p id="progress-copy"></p></article>
+        </div>
+        <div class="section-heading"><div><p class="eyebrow">YOUR NEXT STEPS</p><h2>这个单元怎么学</h2></div><span>可以拆成几次学完</span></div><div id="unit-tasks" class="task-list"></div>
+        <div class="section-heading"><div><p class="eyebrow">YOUR UNITS</p><h2>选择一个单元</h2></div><span id="course-total"></span></div><div id="unit-grid" class="roadmap"></div>
+      </section>
+      <section id="review" class="view">
+        <div class="page-top"><div><p class="eyebrow">YOUR DAILY REVIEW</p><h1>今天该复习什么，<br><em>已经替你记好了。</em></h1><p id="review-date"></p></div></div>
+        <div id="review-stats" class="review-stats"></div>
+        <div class="review-actions"><button class="primary-button" data-action="start-review">开始今日复习 →</button><span>不熟：隔 10 张或无其他词时重现；认识：3 天后；熟悉：明天；很熟：第 7 天。</span></div>
+        <div id="review-flashcard-wrap" class="flashcard-wrap" hidden></div>
+        <div class="mode-tabs" role="tablist" aria-label="复习词表"><button class="mode-tab active" data-review-filter="today">今天需要复习</button><button class="mode-tab" data-review-filter="future">后续安排</button></div><div id="review-list" class="review-list"></div>
+      </section>
+      <section id="vocab" class="view">
+        <div class="page-top"><div><p class="eyebrow unit-eyebrow"></p><h1>背课堂里的词，<br><em>记得住才算。</em></h1><p>新词出现就自动朗读。可以直接选熟悉度，也可以先看释义和例句。</p></div><button class="outline-button" data-view="drill">去听写 →</button></div>
+        <div class="study-meta"><span id="vocab-status"></span><div class="meta-actions"><label class="check-label"><input type="checkbox" id="auto-speak" checked> 自动发音</label><button class="outline-button" id="toggle-wordbank" aria-expanded="false">查看词库</button></div></div>
+        <div id="speech-notice" class="speech-notice" role="status" hidden></div>
+        <div id="flashcard-wrap" class="flashcard-wrap"></div>
+        <section id="wordbank-panel" hidden><div class="wordbank-toolbar"><h2>本单元词库</h2><input id="word-search" type="search" placeholder="搜索意大利语或中文" aria-label="搜索本单元词库"><p>中文默认隐藏，点击翻译区可显示，再点一次收起。</p></div><div id="wordbank" class="wordbank"></div></section>
+      </section>
+      <section id="drill" class="view">
+        <div class="page-top"><div><p class="eyebrow unit-eyebrow"></p><h1>听写与刷词</h1><p>与背单词使用同一份单元词库。答案会保留重音检查，帮你练到能写出来。</p></div></div>
+        <div class="mode-tabs" role="tablist" aria-label="练习模式"><button role="tab" class="mode-tab active" data-mode="dictation">单词听写</button><button role="tab" class="mode-tab" data-mode="example">例句听写</button><button role="tab" class="mode-tab" data-mode="rapid">刷词</button></div><div class="shuffle-toolbar"><span>每轮顺序随机，整轮覆盖本单元全部词。</span><button class="outline-button" data-action="shuffle-drill">重新随机排序 ↻</button></div><div id="drill-panel" class="drill-panel"></div>
+      </section>
+      <section id="listening" class="view">
+        <div class="page-top"><div><p class="eyebrow">ASCOLTIAMO · 历年文稿</p><h1>让耳朵，<br><em>跟上每一句。</em></h1><p>每篇独立播放，逐句跟随。先藏起文字听一遍，再对照原文和译文精听。</p></div><div class="mini-stat"><b>5</b><span>篇听力</span></div></div>
+        <div class="listening-layout">
+          <aside class="listening-library" aria-label="听力篇目"><p class="eyebrow">选择一篇</p><div id="listening-library"></div><p class="listening-library-note">来自 mock意大利语.docx<br>意大利语合成音频 · 校订训练稿</p></aside>
+          <div class="listening-workspace">
+            <header class="listening-track-heading"><span class="chip" id="listening-kind"></span><h2 id="listening-title"></h2><p id="listening-meta"></p></header>
+            <div class="listening-player">
+              <audio id="listening-audio" preload="metadata"></audio>
+              <div class="listening-player-top"><button class="listening-play" id="listening-play" aria-label="播放本篇">▶</button><div><strong id="listening-now">准备播放</strong><span id="listening-time">0:00 / 0:00</span></div><label class="listening-speed-label">语速<select id="listening-speed" aria-label="听力播放速度"><option value="0.7">0.7×</option><option value="0.8">0.8×</option><option value="1" selected>1.0×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option></select></label></div>
+              <input type="range" id="listening-seek" aria-label="听力播放进度" min="0" max="1" value="0" step="0.05">
+              <div class="listening-transport"><button class="text-button" id="listening-prev">← 上一句</button><button class="text-button" id="listening-replay">重听本句</button><button class="text-button" id="listening-next">下一句 →</button></div>
+              <div class="listening-switches"><label><input type="checkbox" id="listening-follow" checked> 跟随当前句</label><label><input type="checkbox" id="listening-loop"> 单句循环</label><button class="text-button" id="listening-locate">定位当前句 ↓</button></div>
+              <p id="listening-error" class="listening-error" role="status" hidden></p>
+            </div>
+            <div class="listening-text-controls"><button class="outline-button" id="listening-toggle-it" aria-pressed="true">隐藏意大利语</button><button class="outline-button" id="listening-toggle-zh" aria-pressed="false">显示中文翻译</button><a id="listening-download" class="text-button" download>下载本篇音频</a></div>
+            <p class="listening-instructions">单击单词定位，点左侧时间重听整句；<span class="known-word-demo">虚线词</span>来自词库，双击查中文。</p>
+            <div id="listening-dictionary" class="listening-dictionary" role="region" aria-label="听力查词" aria-live="polite" hidden></div>
+            <div id="listening-lines" class="listening-lines hide-zh" aria-label="逐句听力文稿"></div>
+            <details class="listening-edits"><summary>查看原稿与校订说明</summary><p>朗读采用校订训练稿。所有改动列在下方；“上下文推测”未获原音频确认。</p><p id="listening-notice"></p><div id="listening-changes"></div><details><summary>Word 原稿摘录</summary><div id="listening-original"></div></details></details>
+          </div>
+        </div>
+      </section>
+      <section id="grammar" class="view">
+        <div class="page-top"><div><p class="eyebrow unit-eyebrow"></p><h1>先理解规则，<br><em>再把话说出来。</em></h1><p>可按单元学，也可查看全部语法；每课包含讲解、表格和分项自测。</p></div><div class="mini-stat"><b id="lesson-count"></b><span>节课程</span></div></div>
+        <div class="mode-tabs" aria-label="课程范围"><button class="mode-tab active" data-lesson-filter="unit">本单元课程</button><button class="mode-tab" data-lesson-filter="all">全部语法课程</button></div><div id="lesson-grid" class="lesson-grid"></div><article id="lesson-detail" class="lesson-detail"></article>
+      </section>
+      <section class="mobile-tools"><h2>进度与离线</h2><p>进度只保存在这台设备上，与 Mac 版互不同步。可下载备份文件，在 Mac 版“恢复旧备份”中导入。</p><p id="offline-status" class="offline-status">离线缓存：检查中…</p><div class="mobile-tools-actions"><button class="outline-button" data-action="m-export">下载进度备份</button><button class="outline-button" data-action="m-import">恢复备份</button><button class="reset-button" data-action="m-reset">重置进度</button></div></section>
+      <footer class="app-footer"><span>Pronto! · 课堂笔记学习版</span><button class="text-button" id="show-audit">内容核对说明</button><div id="audit-info" hidden></div></footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="vocabulary.js"></script><script src="roots.js"></script><script src="lessons.js"></script><script src="curriculum.js"></script><script src="learning-core.js"></script><script src="seed-progress.js"></script><script src="mnemonics.js"></script><script src="progress-store.js"></script><script src="listening-data.js"></script><script src="listening.js"></script><script src="app.js"></script><script src="pwa.js"></script>
+</body>
+</html>

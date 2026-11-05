@@ -81,7 +81,7 @@ function renderReviewSummary(){
 }
 function cardHtml(w,deck){
   const r=state.ratings[w.id],retry=r?.pending;
-  return'<article class="flashcard" data-word-id="'+esc(w.id)+'"><div class="card-label"><span>'+deck.items.length+' 词待过 · '+source(w)+'</span><span class="chip">'+(retry?'再认一次':view==='review'?'今日复习':'UNIT '+state.unit)+'</span></div>'+soundButton(w.it,'重播单词：'+w.it)+'<h2 class="word" lang="it">'+esc(w.it)+'</h2><p class="card-hint">'+(retry?'这个词还没过；选“认识”“熟悉”或“很熟”即过关并安排下次复习。':'直接评分，或展开释义与例句。')+'</p><div class="reveal-row"><button class="reveal-button" data-action="reveal-answer" aria-expanded="'+revealed+'">'+(revealed?'收起释义与例句':'显示释义与例句')+'</button></div><div id="word-answer" '+(revealed?'':'hidden')+'><p class="meaning">'+esc(w.zh)+'</p>'+mnemonicHtml(w)+'<div class="card-answer"><p lang="it">'+esc(w.ex)+' '+soundButton(w.ex,'朗读例句')+'</p><small>'+esc(w.exZh)+'</small></div>'+rootMemoryHtml(w)+'</div><div class="rating-row"><button data-rating="0">不熟<small>隔 10 词再认</small></button><button data-rating="1">认识<small>3 天后复习</small></button><button data-rating="2">熟悉<small>明天复习</small></button><button data-rating="3">很熟<small>第 7 天复习</small></button></div><p class="keyboard-hint">1 / 2 / 3 / 4 评分 · 空格展开 · R 重播</p></article>';
+  return'<article class="flashcard" data-word-id="'+esc(w.id)+'"><div class="card-label"><span>'+deck.items.length+' 词待过 · '+source(w)+'</span><span class="chip">'+(retry?'再认一次':view==='review'?'今日复习':'UNIT '+state.unit)+'</span></div>'+soundButton(w.it,'重播单词：'+w.it)+'<h2 class="word" lang="it">'+esc(w.it)+'</h2><p class="card-hint">'+(retry?'这个词还没过；选“认识”“熟悉”或“很熟”即过关并安排下次复习。':'直接评分，或展开释义与例句。')+'</p><div class="reveal-row"><button class="reveal-button" data-action="reveal-answer" aria-expanded="'+revealed+'">'+(revealed?'收起释义与例句':'显示释义与例句')+'</button></div><div id="word-answer" '+(revealed?'':'hidden')+'><p class="meaning">'+esc(w.zh)+'</p>'+mnemonicHtml(w)+'<div class="card-answer"><p lang="it">'+esc(w.ex)+' '+soundButton(w.ex,'朗读例句')+'</p><small>'+esc(w.exZh)+'</small></div>'+(rootMemoryHtml(w)?'<details class="root-toggle"><summary>词根记忆</summary>'+rootMemoryHtml(w)+'</details>':'')+'</div><div class="rating-row"><button data-rating="0">不熟<small>隔 10 词再认</small></button><button data-rating="1">认识<small>3 天后复习</small></button><button data-rating="2">熟悉<small>明天复习</small></button><button data-rating="3">很熟<small>第 7 天复习</small></button></div><p class="keyboard-hint">1 / 2 / 3 / 4 评分 · 空格展开 · R 重播</p></article>';
 }
 function mnemonicHtml(w){
   const m=typeof MNEMONICS!=='undefined'&&MNEMONICS[w.id];if(!m)return'';
@@ -112,7 +112,7 @@ function renderReview(){
 function scrollToCurrentCard(){
   const wrap=$(view==='review'?'review-flashcard-wrap':'flashcard-wrap');if(!wrap||wrap.hidden)return;
   const target=wrap.querySelector('.flashcard h2.word')||wrap.querySelector('.flashcard');if(!target)return;
-  requestAnimationFrame(()=>target.scrollIntoView({block:'center',behavior:'smooth'}));
+  requestAnimationFrame(()=>target.scrollIntoView({block:'start',behavior:'smooth'}));
 }
 function rateWord(level){
   if(!ready)return;const w=currentWord();if(!w)return;
@@ -187,12 +187,16 @@ document.addEventListener('click',event=>{
   if(el.dataset.lesson){cancelSpeech();currentLesson=Number(el.dataset.lesson);renderGrammar();$('lesson-detail').scrollIntoView({behavior:'smooth',block:'start'});return}
   if(el.dataset.accent){const input=$('drill-input');if(input){input.setRangeText(el.dataset.accent,input.selectionStart??input.value.length,input.selectionEnd??input.value.length,'end');input.focus()}return}
   switch(el.dataset.action){
-    case'reveal-answer':revealed=!revealed;view==='review'?renderReview():renderVocab();break;
+    case'reveal-answer':revealed=!revealed;view==='review'?renderReview():renderVocab();scrollToCurrentCard();break;
     case'restart-vocab':dispatch('session-start',{scope:cardScope(),force:true});revealed=false;renderVocab();autoReadCurrent();scrollToCurrentCard();break;
     case'start-review':reviewActive=true;revealed=false;renderReview();autoReadCurrent();scrollToCurrentCard();break;
     case'sync-now':void ProgressStore.sync();toast('进度已保存在这台设备。');break;
     case'm-export':$('export-progress').click();break;
     case'm-import':$('import-progress').click();break;
+    case'cloud-upload':cloudUpload();break;
+    case'cloud-pull':cloudPull();break;
+    case'copy-sync':copySyncPack();break;
+    case'paste-sync':applySyncPack();break;
     case'm-reset':$('reset-progress').click();break;
     case'check-drill':checkDrill();break;case'drill-next':nextDrill();break;case'drill-prev':nextDrill(-1);break;
     case'shuffle-drill':shuffleDrill();break;
@@ -218,7 +222,7 @@ document.addEventListener('keydown',event=>{
   if(event.target.matches('input,textarea,select')){if(event.key==='Enter'&&event.target.id==='drill-input'){event.preventDefault();drillSubmitted?nextDrill():checkDrill()}return}
   if(!(view==='vocab'||view==='review'&&reviewActive))return;
   if(/^[1-4]$/.test(event.key)){event.preventDefault();rateWord(Number(event.key)-1)}
-  if(event.code==='Space'&&currentWord()){event.preventDefault();revealed=!revealed;view==='review'?renderReview():renderVocab()}
+  if(event.code==='Space'&&currentWord()){event.preventDefault();revealed=!revealed;view==='review'?renderReview():renderVocab();scrollToCurrentCard()}
   if(event.key.toLowerCase()==='r'&&currentWord())speakItalian(currentWord().it);
 });
 window.addEventListener('pagehide',cancelSpeech);
@@ -228,3 +232,38 @@ void ProgressStore.start(update=>{
   if(!ready&&update.ready){ready=true;currentLesson=unit().lessons[0];document.body.classList.remove('loading-progress');render();autoReadCurrent()}
   else if(update.remote||Learning.day()!==lastDay){lastDay=Learning.day();render()}
 });
+
+/* 跨设备同步：Mac 和手机打开同一网址。云端用 jsonblob.com（免费、无需密钥、支持 CORS），同步码 = blob id；失败时用复制/粘贴同步包。 */
+const SYNC_KEY='pronto-sync-id',BLOB='https://jsonblob.com/api/jsonBlob';
+function syncId(){return(localStorage.getItem(SYNC_KEY)||'').trim()}
+function setSyncId(id){id=(id||'').trim();if(id)localStorage.setItem(SYNC_KEY,id);document.querySelectorAll('.sync-id-input').forEach(i=>i.value=id)}
+function readSyncInput(){for(const i of document.querySelectorAll('.sync-id-input'))if(i.value.trim()&&i.value.trim()!==syncId()){setSyncId(i.value);break}return syncId()}
+function syncStatus(t){document.querySelectorAll('.sync-status').forEach(e=>e.textContent=t)}
+function counts(snap){const s=snap?.snapshot||snap||{};const r=s.ratings||{};return Object.keys(r).length}
+function applySnapshot(data,label){
+  const preview=Learning.normalizeImport(data);
+  if(!confirm(label+'包含 '+preview.summary.words+' 个词、'+preview.summary.answers+' 个答题记录。本机当前约 '+counts({snapshot:ProgressStore.state})+' 个词，将被替换。继续？'))return false;
+  const summary=ProgressStore.importProgress(data);state=ProgressStore.state;currentLesson=unit().lessons[0];revealed=false;quizSubmitted.clear();render();toast('已恢复 '+summary.words+' 个词。');return true}
+async function cloudUpload(){
+  const id=readSyncInput(),body=JSON.stringify(ProgressStore.exportProgress());syncStatus('上传中…');
+  try{let r;
+    if(id){r=await fetch(BLOB+'/'+encodeURIComponent(id),{method:'PUT',headers:{'Content-Type':'application/json',Accept:'application/json'},body});}
+    if(!id||r.status===404){r=await fetch(BLOB,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body});
+      const nid=r.headers.get('X-jsonblob-id')||(r.headers.get('Location')||'').split('/').pop();if(!r.ok||!nid)throw new Error('HTTP '+r.status);setSyncId(nid)}
+    else if(!r.ok)throw new Error('HTTP '+r.status);
+    syncStatus('已上传 '+new Date().toLocaleTimeString()+' · 同步码 '+syncId()+'（在另一台设备填入此码后点“从云端拉取”）');toast('进度已上传云端')
+  }catch(e){syncStatus('上传失败（'+e.message+'）。可改用下方“复制同步包”。')}}
+async function cloudPull(){
+  const id=readSyncInput();if(!id){syncStatus('请先填入同步码（在另一台设备上传后显示）。');return}
+  syncStatus('拉取中…');
+  try{const r=await fetch(BLOB+'/'+encodeURIComponent(id),{headers:{Accept:'application/json'}});if(!r.ok)throw new Error('HTTP '+r.status);
+    const data=await r.json();syncStatus(applySnapshot(data,'云端进度')?'已从云端拉取 '+new Date().toLocaleTimeString():'已取消拉取。')
+  }catch(e){syncStatus('拉取失败（'+e.message+'）。可改用“粘贴同步包”。')}}
+async function copySyncPack(){
+  const text=JSON.stringify(ProgressStore.exportProgress());
+  try{await navigator.clipboard.writeText(text);toast('同步包已复制，可粘贴到另一台设备')}catch{toast('无法写入剪贴板，已下载文件')}
+  const url=URL.createObjectURL(new Blob([text],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='pronto-sync.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function applySyncPack(){
+  const ta=[...document.querySelectorAll('.sync-paste')].find(t=>t.value.trim());if(!ta){toast('请先粘贴同步包');return}
+  try{if(applySnapshot(JSON.parse(ta.value),'同步包'))ta.value=''}catch(e){toast(e.message||'无法识别同步包')}}
+setSyncId(syncId());

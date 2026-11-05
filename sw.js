@@ -1,5 +1,5 @@
 /* 离线缓存：首次打开时下载全部页面、脚本与听力音频；之后优先读缓存，断网可用。 */
-const VERSION='262401d958b9';
+const VERSION='sync-layout-20261105';
 const CACHE='pronto-mobile-'+VERSION;
 const ASSETS=["app.js", "curriculum.js", "index.html", "learning-core.js", "lessons.js", "listening-data.js", "listening.js", "manifest.webmanifest", "mnemonics.js", "progress-store.js", "pwa.js", "roots.js", "seed-progress.js", "styles.css", "vocabulary.js", "audio/ferragni.m4a", "audio/joanna.m4a", "audio/martina.m4a", "audio/trentino.m4a", "audio/yukari.m4a", "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png"];
 self.addEventListener('install',e=>{e.waitUntil((async()=>{const c=await caches.open(CACHE);await c.addAll(ASSETS.map(u=>new Request(u,{cache:'reload'})));await self.skipWaiting()})())});

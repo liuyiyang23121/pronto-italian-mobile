@@ -38,3 +38,26 @@ html{-webkit-text-size-adjust:100%}button,select,input{touch-action:manipulation
 @media(display-mode:standalone){body{overscroll-behavior-y:none}}
 
 .flashcard h2.word{scroll-margin-top:90px}
+
+/* 紧凑卡片 + 吸底评分 */
+.flashcard-wrap{min-height:0!important;place-items:start center}
+.flashcard{min-height:0!important}
+.flashcard .word{margin:10px 0 2px!important}
+.flashcard h2.word{scroll-margin-top:90px}
+.flashcard .reveal-row{min-height:0;margin-top:8px;padding-top:4px}
+#word-answer .meaning{margin:6px 0;font-size:17px}
+#word-answer .mnemonic,#word-answer .card-answer,#word-answer .root-memory{font-size:13px;line-height:1.4;margin:6px 0;padding:8px 10px}
+.root-toggle{font-size:12px;margin:4px 0;text-align:left}.root-toggle summary{cursor:pointer;color:var(--muted)}
+.sync-panel{margin:12px 0;text-align:left}.sync-panel h3{font-size:15px;margin:0 0 4px}.sync-panel p{font-size:12px}
+.sync-id-input,.sync-paste{width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--line);border-radius:8px;margin:6px 0;font:13px var(--sans)}
+.sync-status{color:var(--muted);word-break:break-all}
+@media(max-width:700px){
+ .flashcard{padding:12px 14px 8px!important;overflow:visible!important}
+ .flashcard>.audio-button{margin:6px 0 0!important}
+ .flashcard .word{margin:6px 0 2px!important;font-size:clamp(30px,9vw,44px)!important}
+ .card-hint{margin:2px 0 6px!important}
+ .keyboard-hint{display:none!important}
+ .flashcard .rating-row{position:sticky;bottom:0;z-index:5;grid-template-columns:1fr 1fr!important;gap:6px;margin:8px -14px -8px!important;padding:8px 14px calc(8px + env(safe-area-inset-bottom));background:var(--paper);border-top:1px solid var(--line);box-shadow:0 -6px 14px rgba(0,0,0,.06)}
+ .flashcard .rating-row button{padding:9px 4px!important}
+ .flashcard .rating-row small{margin-top:2px!important}
+}

@@ -3,7 +3,8 @@ const $=id=>document.getElementById(id),$$=selector=>[...document.querySelectorA
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const byId=new Map(VOCAB.map(w=>[w.id,w]));
 let state=Learning.empty(),ready=false;
-let view=['home','vocab','review','drill','grammar','listening'].includes(location.hash.slice(1))?location.hash.slice(1):'home';
+const VIEWS=['home','vocab','review','drill','grammar','listening','reading'];
+let view=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):'home';
 let currentLesson=1,revealed=false,bankOpen=false,bankRevealed=new Set(),rapidRevealed=new Set();
 let reviewActive=false,reviewFilter='today',lessonFilter='unit',lastDay=Learning.day();
 let drillMode='dictation',drillIndex=0,drillOrder=[],drillSubmitted=false,quizSubmitted=new Set();
@@ -15,7 +16,7 @@ function unitWords(){return VOCAB.filter(w=>w.units.includes(state.unit))}
 function unitLessons(){return LESSONS.filter(l=>unit().lessons.includes(l.id))}
 function source(w){return '笔记 P.'+w.pages.join('、')}
 function soundButton(text,label='朗读'){return '<button class="audio-button" data-speak="'+esc(text)+'" aria-label="'+esc(label)+'">🔊</button>'}
-function cancelSpeech(){clearTimeout(speechTimer);if('speechSynthesis'in window)window.speechSynthesis.cancel();utterance=null}
+function cancelSpeech(){ReadingPractice.stop();clearTimeout(speechTimer);if('speechSynthesis'in window)window.speechSynthesis.cancel();utterance=null}
 function speakItalian(text,automatic=false){
   ListeningPractice.pause();
   cancelSpeech();if(!('speechSynthesis'in window)){if(!automatic)toast('此浏览器不支持朗读，请尝试 Chrome 或 Safari。');return}
@@ -35,7 +36,7 @@ function selectUnit(id){
   revealed=false;bankRevealed.clear();rapidRevealed.clear();drillIndex=0;drillOrder=[];$('word-search').value='';render();autoReadCurrent();
 }
 function showView(next){
-  if(!['home','vocab','review','drill','grammar','listening'].includes(next))return;
+  if(!VIEWS.includes(next))return;
   if(next!=='listening')ListeningPractice.pause();
   cancelSpeech();if(next==='drill'&&view!=='drill')shuffleDrill(false);view=next;
   history.replaceState(null,'','#'+next);render();window.scrollTo({top:0,behavior:'smooth'});autoReadCurrent();
@@ -60,7 +61,7 @@ function render(){
   $$('.unit-eyebrow').forEach(e=>e.textContent='UNIT '+String(u.id).padStart(2,'0')+' · '+u.title);
   $('auto-speak').checked=state.autoSpeak;renderHome();renderReviewSummary();
   if(view==='vocab'){renderVocab();renderWordbank()}if(view==='review')renderReview();
-  if(view==='drill')renderDrill();if(view==='grammar')renderGrammar();if(view==='listening')ListeningPractice.render(state.listening);renderSaveStatus();
+  if(view==='drill')renderDrill();if(view==='grammar')renderGrammar();if(view==='listening')ListeningPractice.render(state.listening);if(view==='reading')ReadingPractice.render(state);renderSaveStatus();
 }
 function renderHome(){
   const u=unit(),p=unitProgress(u),done=p.done.filter(Boolean).length;
@@ -99,7 +100,7 @@ function renderVocab(){
 }
 function renderReview(){
   const today=Learning.day(),due=Learning.due(state,today),tomorrow=Learning.addDays(today,1),scheduled=VOCAB.filter(w=>state.ratings[w.id]?.dueDay>today&&!state.ratings[w.id].pending);
-  $('review-date').textContent=today+' · 意大利时间 · 不受当前 Unit 限制';
+  $('review-date').textContent=today+' · 意大利时间（凌晨 5 点前算前一天）· 不受当前 Unit 限制';
   const stats=[['今天要复习',due.length],['其中待巩固',due.filter(w=>state.ratings[w.id].pending).length],['明天到期',scheduled.filter(w=>state.ratings[w.id].dueDay===tomorrow).length],['后续已安排',scheduled.length]];
   $('review-stats').innerHTML=stats.map(([label,n])=>'<article><span>'+label+'</span><strong>'+n+'</strong></article>').join('');
   $$('.mode-tab[data-review-filter]').forEach(b=>b.classList.toggle('active',b.dataset.reviewFilter===reviewFilter));
@@ -226,7 +227,7 @@ document.addEventListener('keydown',event=>{
   if(event.key.toLowerCase()==='r'&&currentWord())speakItalian(currentWord().it);
 });
 window.addEventListener('pagehide',cancelSpeech);
-document.body.classList.add('loading-progress');renderAudit();ListeningPractice.init({commit:dispatch,stopOther:cancelSpeech});
+document.body.classList.add('loading-progress');renderAudit();ListeningPractice.init({commit:dispatch,stopOther:cancelSpeech});ReadingPractice.init({commit:dispatch,stopOther:cancelSpeech,toast,state:()=>state});
 void ProgressStore.start(update=>{
   state=update.state;renderSaveStatus();
   if(!ready&&update.ready){ready=true;currentLesson=unit().lessons[0];document.body.classList.remove('loading-progress');render();autoReadCurrent()}

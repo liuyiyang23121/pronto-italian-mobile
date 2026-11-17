@@ -22,6 +22,7 @@
         <button class="nav-item" data-view="drill" aria-label="听写与刷词"><span aria-hidden="true">⌁</span><span class="nav-label">听写与刷词</span></button>
         <button class="nav-item" data-view="listening" aria-label="听力练习"><span aria-hidden="true">♫</span><span class="nav-label">听力练习</span></button>
         <button class="nav-item" data-view="grammar" aria-label="语法课堂"><span aria-hidden="true">☷</span><span class="nav-label">语法课堂</span></button>
+        <button class="nav-item" data-view="reading" aria-label="阅读"><span aria-hidden="true">✎</span><span class="nav-label">阅读</span></button>
       </nav>
       <div class="sidebar-bottom"><p>每次操作自动保存在这台设备（离线可用）</p><span class="sidebar-save" id="sidebar-save">正在读取…</span><div class="sync-panel"><h3>跨设备同步</h3><p>Mac 和手机都打开同一网站；学完点“上传到云端”，另一台点“从云端拉取”。首次上传后会得到同步码，在另一台设备填入即可。</p><input class="sync-id-input" placeholder="同步码（首次上传自动生成）" autocomplete="off"><div class="mobile-tools-actions"><button class="primary-button" data-action="cloud-upload">上传进度到云端</button><button class="outline-button" data-action="cloud-pull">从云端拉取进度</button></div><p class="sync-status"></p><details><summary>云端不可用时：复制/粘贴同步包</summary><button class="outline-button" data-action="copy-sync">生成本地同步包（复制+下载）</button><textarea class="sync-paste" rows="3" placeholder="在此粘贴同步包"></textarea><button class="outline-button" data-action="paste-sync">粘贴同步包恢复</button></details></div><details><summary>可选备份与恢复</summary><button class="outline-button" id="export-progress">下载进度备份</button><label class="import-label">恢复旧备份<input id="import-progress" type="file" accept="application/json" hidden></label></details><button class="reset-button" id="reset-progress">重置我的学习进度</button></div>
     </aside>
@@ -33,7 +34,7 @@
         <div class="home-heading"><div><h1>一课一课，<br><em>把意大利语学明白。</em></h1><p id="hero-subtitle"></p></div></div>
         <button class="daily-review-callout" data-view="review"><span>↻ 今日复习</span><strong id="home-review-count">正在读取…</strong><small>打开就知道该复习什么 →</small></button>
         <div class="dashboard-grid">
-          <article class="focus-card"><div class="focus-top"><span id="focus-unit"></span><span id="focus-source"></span></div><h2 id="focus-title"></h2><p id="focus-copy"></p><div class="focus-actions"><button class="primary-button" data-view="vocab">开始背本单元的词 →</button><button class="text-button" data-view="grammar">先学语法</button></div></article>
+          <article class="focus-card"><div class="focus-top"><span id="focus-unit"></span><span id="focus-source"></span></div><h2 id="focus-title"></h2><p id="focus-copy"></p><div class="focus-actions"><button class="primary-button" data-view="vocab">开始背本单元的词 →</button><button class="text-button" data-view="grammar">先学语法</button><button class="text-button" data-view="reading">读本单元短文</button></div></article>
           <article class="progress-card"><div class="progress-label"><span>本单元进度</span><b id="progress-fraction"></b></div><div class="ring-wrap"><div class="progress-ring" id="progress-ring"><div><strong id="progress-percent"></strong><small>已完成</small></div></div></div><p id="progress-copy"></p></article>
         </div>
         <div class="section-heading"><div><p class="eyebrow">YOUR NEXT STEPS</p><h2>这个单元怎么学</h2></div><span>可以拆成几次学完</span></div><div id="unit-tasks" class="task-list"></div>
@@ -79,6 +80,11 @@
           </div>
         </div>
       </section>
+      <section id="reading" class="view">
+        <div class="page-top"><div><p class="eyebrow unit-eyebrow"></p><h1>读懂一段话，<br><em>再把它读出来。</em></h1><p>每个单元 3 篇 A1–A2 分级短文（对话、邮件、日记、城市介绍……）和一组实用句。点句子看中文，🔊 听单句，「整篇朗读」当听力练。</p></div><div class="mini-stat"><b id="reading-count">3</b><span>篇本单元短文</span></div></div>
+        <div class="mode-tabs" role="tablist" aria-label="阅读内容"><button class="mode-tab active" data-rd-tab="texts">短文阅读</button><button class="mode-tab" data-rd-tab="key">本单元实用句</button></div>
+        <div id="reading-panel" class="reading-panel"></div>
+      </section>
       <section id="grammar" class="view">
         <div class="page-top"><div><p class="eyebrow unit-eyebrow"></p><h1>先理解规则，<br><em>再把话说出来。</em></h1><p>可按单元学，也可查看全部语法；每课包含讲解、表格和分项自测。</p></div><div class="mini-stat"><b id="lesson-count"></b><span>节课程</span></div></div>
         <div class="mode-tabs" aria-label="课程范围"><button class="mode-tab active" data-lesson-filter="unit">本单元课程</button><button class="mode-tab" data-lesson-filter="all">全部语法课程</button></div><div id="lesson-grid" class="lesson-grid"></div><article id="lesson-detail" class="lesson-detail"></article>
@@ -88,6 +94,6 @@
     </main>
   </div>
   <div id="toast" class="toast" role="status"></div>
-  <script src="vocabulary.js"></script><script src="roots.js"></script><script src="lessons.js"></script><script src="curriculum.js"></script><script src="learning-core.js"></script><script src="seed-progress.js"></script><script src="mnemonics.js"></script><script src="progress-store.js"></script><script src="listening-data.js"></script><script src="listening.js"></script><script src="app.js"></script><script src="pwa.js"></script>
+  <script src="vocabulary.js"></script><script src="roots.js"></script><script src="lessons.js"></script><script src="curriculum.js"></script><script src="learning-core.js"></script><script src="seed-progress.js"></script><script src="mnemonics.js"></script><script src="progress-store.js"></script><script src="listening-data.js"></script><script src="listening.js"></script><script src="reading-data.js"></script><script src="reading.js"></script><script src="app.js"></script><script src="pwa.js"></script>
 </body>
 </html>

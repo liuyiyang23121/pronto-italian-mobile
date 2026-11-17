@@ -1,7 +1,7 @@
 /* 离线缓存：首次打开时下载全部页面、脚本与听力音频；之后优先读缓存，断网可用。 */
-const VERSION='reading-shuffle-20261117';
+const VERSION='reading-gloss-20261117';
 const CACHE='pronto-mobile-'+VERSION;
-const ASSETS=["app.js", "curriculum.js", "index.html", "learning-core.js", "lessons.js", "listening-data.js", "listening.js", "manifest.webmanifest", "mnemonics.js", "progress-store.js", "pwa.js", "reading-data.js", "reading.js", "roots.js", "seed-progress.js", "styles.css", "vocabulary.js", "audio/ferragni.m4a", "audio/joanna.m4a", "audio/martina.m4a", "audio/trentino.m4a", "audio/yukari.m4a", "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png"];
+const ASSETS=["app.js", "curriculum.js", "index.html", "learning-core.js", "lessons.js", "listening-data.js", "listening.js", "manifest.webmanifest", "mnemonics.js", "progress-store.js", "pwa.js", "reading-data.js", "reading-glossary.js", "reading.js", "roots.js", "seed-progress.js", "styles.css", "vocabulary.js", "audio/ferragni.m4a", "audio/joanna.m4a", "audio/martina.m4a", "audio/trentino.m4a", "audio/yukari.m4a", "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png"];
 self.addEventListener('install',e=>{e.waitUntil((async()=>{const c=await caches.open(CACHE);await c.addAll(ASSETS.map(u=>new Request(u,{cache:'reload'})));await self.skipWaiting()})())});
 self.addEventListener('activate',e=>{e.waitUntil((async()=>{for(const k of await caches.keys())if(k.startsWith('pronto-mobile-')&&k!==CACHE)await caches.delete(k);await self.clients.claim();broadcast()})())});
 async function broadcast(target){const c=await caches.open(CACHE),n=(await c.keys()).length,msg={type:'cached',count:n,total:ASSETS.length,version:VERSION};if(target)target.postMessage(msg);else for(const cl of await self.clients.matchAll())cl.postMessage(msg)}

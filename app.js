@@ -61,7 +61,7 @@ function render(){
   $$('.unit-eyebrow').forEach(e=>e.textContent='UNIT '+String(u.id).padStart(2,'0')+' · '+u.title);
   $('auto-speak').checked=state.autoSpeak;renderHome();renderReviewSummary();
   if(view==='vocab'){renderVocab();renderWordbank()}if(view==='review')renderReview();
-  if(view==='drill')renderDrill();if(view==='grammar')renderGrammar();if(view==='listening')ListeningPractice.render(state.listening);if(view==='reading')ReadingPractice.render(state);renderSaveStatus();
+  if(view==='drill')renderDrill();if(view==='grammar')renderGrammar();if(view==='listening')ListeningPractice.render(state.listening);if(view==='reading')ReadingPractice.render(state);renderSaveStatus();requestAnimationFrame(updateLayoutVars);
 }
 function renderHome(){
   const u=unit(),p=unitProgress(u),done=p.done.filter(Boolean).length;
@@ -110,7 +110,18 @@ function renderReview(){
   if(reviewActive){const deck=session(),w=currentWord();$('review-flashcard-wrap').innerHTML=w?cardHtml(w,deck):'<article class="flashcard complete-card"><h2>今天到期的词已全部过关。</h2><p>熟悉的词明天再见，认识的词 3 天后再见，很熟的词第 7 天再见。</p></article>'}
 }
 // 评分后把下一张卡的意大利语单词滚到屏幕中间，避免手机上单词被滚出视野。
+// 顶部导航高度（含 iPhone 刘海安全区）与吸底评分栏高度写进 CSS 变量，供 scroll-margin / 吸顶工具栏使用，避免内容被挡住。
+function updateLayoutVars(){
+  const root=document.documentElement.style,nav=document.querySelector('.sidebar'),wide=innerWidth>900;
+  root.setProperty('--nav-h',(wide||!nav?0:Math.ceil(nav.getBoundingClientRect().height))+'px');
+  const bar=document.querySelector('.view.active-view .flashcard .rating-row')||document.querySelector('.flashcard .rating-row');
+  if(bar&&bar.offsetHeight)root.setProperty('--rate-h',Math.ceil(bar.offsetHeight)+'px');
+}
+window.addEventListener('resize',updateLayoutVars);window.addEventListener('orientationchange',()=>setTimeout(updateLayoutVars,300));
+// 展开「词根记忆」后，把展开的内容滚到评分栏上方，而不是藏在吸底按钮后面。
+document.addEventListener('toggle',e=>{const d=e.target;if(!d.matches?.('.root-toggle')||!d.open)return;updateLayoutVars();requestAnimationFrame(()=>d.querySelector('.root-memory')?.scrollIntoView({block:'nearest',behavior:'smooth'}))},true);
 function scrollToCurrentCard(){
+  updateLayoutVars();
   const wrap=$(view==='review'?'review-flashcard-wrap':'flashcard-wrap');if(!wrap||wrap.hidden)return;
   const target=wrap.querySelector('.flashcard h2.word')||wrap.querySelector('.flashcard');if(!target)return;
   requestAnimationFrame(()=>target.scrollIntoView({block:'start',behavior:'smooth'}));
@@ -188,6 +199,7 @@ document.addEventListener('click',event=>{
   if(el.dataset.lesson){cancelSpeech();currentLesson=Number(el.dataset.lesson);renderGrammar();$('lesson-detail').scrollIntoView({behavior:'smooth',block:'start'});return}
   if(el.dataset.accent){const input=$('drill-input');if(input){input.setRangeText(el.dataset.accent,input.selectionStart??input.value.length,input.selectionEnd??input.value.length,'end');input.focus()}return}
   switch(el.dataset.action){
+    case'close-wordbank':bankOpen=false;bankRevealed.clear();renderVocab();renderWordbank();scrollToCurrentCard();break;
     case'reveal-answer':revealed=!revealed;view==='review'?renderReview():renderVocab();scrollToCurrentCard();break;
     case'restart-vocab':dispatch('session-start',{scope:cardScope(),force:true});revealed=false;renderVocab();autoReadCurrent();scrollToCurrentCard();break;
     case'start-review':reviewActive=true;revealed=false;renderReview();autoReadCurrent();scrollToCurrentCard();break;
